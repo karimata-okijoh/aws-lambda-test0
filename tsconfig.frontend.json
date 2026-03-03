@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "outDir": "./frontend/dist",
+    "rootDir": "./frontend/src",
+    "moduleResolution": "node"
+  },
+  "include": ["frontend/src/**/*"],
+  "exclude": ["node_modules", "frontend/dist"]
+}

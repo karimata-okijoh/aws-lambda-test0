@@ -1,0 +1,50 @@
+# 依存関係
+node_modules/
+package-lock.json
+yarn.lock
+
+# ビルド出力
+dist/
+frontend/dist/
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# ただし設定ファイルは除外しない
+!jest.config.js
+
+# テストカバレッジ
+coverage/
+.nyc_output/
+
+# 環境変数
+.env
+.env.local
+.env.*.local
+
+# ログ
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# エディタ設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AWS
+.aws-sam/
+samconfig.toml
+
+# 一時ファイル
+*.tmp
+.cache/
