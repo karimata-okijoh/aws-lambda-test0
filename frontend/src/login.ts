@@ -3,7 +3,7 @@
 // 即時実行関数でスコープを分離
 (function() {
   // API設定（環境に応じて変更）
-  const API_BASE_URL = 'http://localhost:3000'; // 開発環境用
+  const API_BASE_URL = 'https://bycx9lu24g.execute-api.ap-northeast-1.amazonaws.com/prod'; // 本番環境用
 
 /**
  * エラーメッセージを表示
@@ -83,9 +83,9 @@ const handleLogin = async (event: Event): Promise<void> => {
 
       // 成功時のリダイレクト
       if (data.role === 'admin') {
-        window.location.href = '/admin.html';
+        window.location.href = 'admin.html';
       } else {
-        window.location.href = '/survey.html';
+        window.location.href = 'survey.html';
       }
     } else {
       // エラーメッセージの表示
@@ -112,9 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const role = localStorage.getItem('userRole');
   if (token) {
     if (role === 'admin') {
-      window.location.href = '/admin.html';
+      window.location.href = 'admin.html';
     } else {
-      window.location.href = '/survey.html';
+      window.location.href = 'survey.html';
     }
   }
 });

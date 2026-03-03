@@ -5,16 +5,17 @@ Description: TeamViewer Survey Application - Serverless Backend
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 1024
-    Runtime: nodejs18.x
+    MemorySize: 512
+    Runtime: nodejs22.x
     Environment:
       Variables:
-        SESSIONS_TABLE: !Ref SessionsTable
-        RESPONSES_TABLE: !Ref ResponsesTable
-        COMMON_PASSWORD: '{{resolve:ssm:teamviewer-survey-common-password:1}}'
-        ADMIN_PASSWORD: '{{resolve:ssm:teamviewer-survey-admin-password:1}}'
+        SESSIONS_TABLE_NAME: !Ref SessionsTable
+        RESPONSES_TABLE_NAME: !Ref ResponsesTable
+        COMMON_PASSWORD_PARAM: 'teamviewer-survey-common-password'
+        ADMIN_PASSWORD_PARAM: 'teamviewer-survey-admin-password'
         SURVEY_START_DATE: '2026-03-15'
         SURVEY_END_DATE: '2026-06-27'
+        JWT_SECRET: 'teamviewer-survey-jwt-secret-key-2026'
 
 Resources:
   # DynamoDB Tables
@@ -59,49 +60,104 @@ Resources:
         - Key: Environment
           Value: Production
 
-  # Lambda Functions (Placeholder - to be implemented in other tasks)
+  # Lambda Functions
   AuthFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: dist/lambda/
-      Handler: auth.handler
+      CodeUri: dist/
+      Handler: lambda/auth.handler
       Description: Authentication Lambda for TeamViewer Survey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref SessionsTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey-common-password'
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey-admin-password'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
       Environment:
         Variables:
           NODE_ENV: production
+      Events:
+        LoginApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /auth/login
+            Method: POST
 
   SurveyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: dist/lambda/
-      Handler: survey.handler
+      CodeUri: dist/
+      Handler: lambda/survey.handler
       Description: Survey Lambda for TeamViewer Survey
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ResponsesTable
         - DynamoDBReadPolicy:
             TableName: !Ref SessionsTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
       Environment:
         Variables:
           NODE_ENV: production
+      Events:
+        GetSurveyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /survey
+            Method: GET
+        PostSurveyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /survey
+            Method: POST
 
   ReportFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: dist/lambda/
-      Handler: report.handler
-      Description: Report Lambda for TeamViewer Survey
+      CodeUri: dist/
+      Handler: lambda/report.handler
+      Description: Report Lambda for TeamViewer Survey (Admin Only)
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ResponsesTable
         - DynamoDBReadPolicy:
             TableName: !Ref SessionsTable
+        - Statement:
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
       Environment:
         Variables:
           NODE_ENV: production
+      Events:
+        GetReportApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /report
+            Method: GET
 
   # API Gateway
   ApiGateway:
@@ -109,7 +165,7 @@ Resources:
     Properties:
       StageName: prod
       Cors:
-        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization'"
         AllowOrigin: "'*'"
       Auth:
@@ -117,11 +173,25 @@ Resources:
       # HTTPS通信の強制設定（要件: 7.1）
       EndpointConfiguration:
         Type: REGIONAL
-      # セキュリティポリシーの設定
-      Domain:
-        SecurityPolicy: TLS_1_2
-      # API Gatewayのデフォルト設定でHTTPSのみ許可
-      # HTTPリクエストは自動的にHTTPSにリダイレクトされる
+
+  # CloudWatch Logs - ログ保持期間設定（要件: 10.4）
+  AuthFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AuthFunction}'
+      RetentionInDays: 30
+
+  SurveyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${SurveyFunction}'
+      RetentionInDays: 30
+
+  ReportFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ReportFunction}'
+      RetentionInDays: 30
 
 Outputs:
   SessionsTableName:

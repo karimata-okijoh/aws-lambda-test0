@@ -299,7 +299,8 @@ h1 {
 .survey-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 500px;
+  min-width: 600px;
+  table-layout: fixed;
 }
 
 .survey-table thead {
@@ -311,13 +312,25 @@ h1 {
   text-align: center;
   font-weight: 600;
   color: #2c3e50;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
   font-size: 14px;
 }
 
 .survey-table th:first-child {
+  width: 25%;
   text-align: left;
   padding-left: 15px;
+}
+
+.survey-table th:nth-child(2),
+.survey-table th:nth-child(3),
+.survey-table th:nth-child(4) {
+  width: 25%;
+}
+
+.survey-table th:last-child {
+  border-right: none;
 }
 
 .time-range {
@@ -329,7 +342,8 @@ h1 {
 .survey-table td {
   padding: 12px 10px;
   text-align: center;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
+  border-right: 1px solid #ddd;
 }
 
 .survey-table td:first-child {
@@ -339,25 +353,29 @@ h1 {
   color: #333;
 }
 
+.survey-table td:last-child {
+  border-right: none;
+}
+
 .survey-table tbody tr:hover {
   background-color: #fafafa;
 }
 
 /* セルスタイル */
 .survey-cell {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
+  width: 80px;
   height: 50px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 24px;
   font-weight: bold;
   transition: all 0.2s;
-  min-width: 44px;
   min-height: 44px;
   user-select: none;
+  margin: 0 auto;
 }
 
 .survey-cell.used {

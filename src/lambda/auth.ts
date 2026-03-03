@@ -8,7 +8,42 @@ import { isValidDomain, sanitizeEmail } from '../utils/validators';
 import { ADMIN_EMAIL, JWT_EXPIRATION, HTTP_STATUS } from '../utils/constants';
 import { logInfo } from '../utils/logger';
 import { globalErrorHandler, AppError, logSuccess } from '../utils/errorHandler';
-import { getSecretFromEnv, sanitizeResponse } from '../utils/security';
+import { getSecretFromEnv, sanitizeResponse, getSecretFromSSM } from '../utils/security';
+
+// パスワードのキャッシュ
+let commonPasswordCache: string | null = null;
+let adminPasswordCache: string | null = null;
+
+/**
+ * 環境変数の取得（セキュアバージョン）
+ * 要件: 7.3
+ */
+const getPassword = async (type: 'common' | 'admin'): Promise<string> => {
+  // キャッシュチェック
+  if (type === 'common' && commonPasswordCache) {
+    return commonPasswordCache;
+  }
+  if (type === 'admin' && adminPasswordCache) {
+    return adminPasswordCache;
+  }
+
+  // SSMパラメータ名を環境変数から取得
+  const paramName = type === 'common' 
+    ? getEnvVar('COMMON_PASSWORD_PARAM')
+    : getEnvVar('ADMIN_PASSWORD_PARAM');
+
+  // SSMから取得
+  const password = await getSecretFromSSM(paramName);
+
+  // キャッシュに保存
+  if (type === 'common') {
+    commonPasswordCache = password;
+  } else {
+    adminPasswordCache = password;
+  }
+
+  return password;
+};
 
 /**
  * 環境変数の取得（セキュアバージョン）
@@ -37,12 +72,12 @@ const validateDomain = (email: string): { valid: boolean; errorCode?: ErrorCode;
  * パスワード検証
  * 要件: 1.3, 1.4
  */
-const validatePassword = (
+const validatePassword = async (
   email: string,
   password: string
-): { valid: boolean; role?: 'user' | 'admin'; errorCode?: ErrorCode; message?: string } => {
-  const commonPassword = getEnvVar('COMMON_PASSWORD');
-  const adminPassword = getEnvVar('ADMIN_PASSWORD');
+): Promise<{ valid: boolean; role?: 'user' | 'admin'; errorCode?: ErrorCode; message?: string }> => {
+  const commonPassword = await getPassword('common');
+  const adminPassword = await getPassword('admin');
 
   // 管理者アカウントの場合
   if (email === ADMIN_EMAIL) {
@@ -149,7 +184,7 @@ export const handler = async (
     }
 
     // パスワード検証（要件: 1.3, 1.4）
-    const passwordValidation = validatePassword(email, password);
+    const passwordValidation = await validatePassword(email, password);
     if (!passwordValidation.valid) {
       logInfo('Password validation failed', { email });
       throw new AppError(ErrorCode.AUTH_002);

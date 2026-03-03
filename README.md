@@ -1,68 +1,99 @@
-# TeamViewerアンケートアプリケーション
+# TeamViewer Survey App
 
-社内でのTeamViewer利用状況を収集・集計するためのサーバーレスWebアプリケーションです。
+TeamViewerの利用状況を収集・集計するためのサーバーレスアンケートシステムです。
 
 ## 概要
 
-- **アンケート期間**: 2026年3月15日～2026年6月27日
-- **対象ユーザー**: @okijoh.co.jpドメインの20〜25名
-- **管理者**: karimata@okijoh.co.jp
+社内ツールとして、20〜25名の社員がTeamViewerの利用状況（午前中、午後、18時以降の3つの時間帯）を1週間単位で入力できるWebアプリケーションです。AWS Lambdaの無料枠内で動作するように設計されています。
+
+**アンケート期間**: 2026年3月15日～2026年6月27日
+
+## 主要機能
+
+- ✅ ドメイン制限付きユーザー認証（@okijoh.co.jp）
+- ✅ 1週間単位の表形式でのアンケート回答入力
+- ✅ 各日付×時間帯のセルをクリックで使用/未使用を切り替え
+- ✅ 週単位のナビゲーション（前の週/次の週）
+- ✅ 回答の表示・編集機能
+- ✅ 管理者専用の集計レポート生成
+- ✅ レスポンシブWebインターフェース
 
 ## 技術スタック
 
+- **フロントエンド**: HTML5, CSS3, TypeScript → JavaScript
 - **バックエンド**: AWS Lambda（Node.js 18.x）、TypeScript
-- **フロントエンド**: HTML5、CSS3、TypeScript → JavaScript
 - **データストア**: Amazon DynamoDB
 - **認証**: JWT
-- **テスト**: Jest、fast-check
+- **デプロイ**: AWS SAM
+- **テスト**: Jest、fast-check（プロパティベーステスト）
 
-## プロジェクト構造
+## クイックスタート
 
-```
-.
-├── src/
-│   ├── lambda/          # Lambda関数
-│   │   ├── auth.ts      # 認証Lambda
-│   │   ├── survey.ts    # アンケートLambda
-│   │   └── report.ts    # レポートLambda
-│   ├── types/           # 型定義
-│   │   └── index.ts     # コア型定義
-│   └── utils/           # ユーティリティ
-│       ├── constants.ts # 定数
-│       ├── logger.ts    # ロギング
-│       └── validators.ts # 入力検証
-├── frontend/
-│   ├── src/             # フロントエンドTypeScript
-│   │   ├── login.ts     # ログインページ
-│   │   ├── survey.ts    # アンケートページ
-│   │   └── admin.ts     # 管理者ダッシュボード
-│   ├── styles/          # CSS
-│   │   └── main.css
-│   ├── index.html       # ログインページ
-│   ├── survey.html      # アンケートページ
-│   └── admin.html       # 管理者ダッシュボード
-├── package.json
-├── tsconfig.json
-├── tsconfig.frontend.json
-└── jest.config.js
-```
+### 前提条件
 
-## セットアップ
+以下のツールがインストールされていることを確認してください：
 
-### 依存関係のインストール
+- [AWS CLI](https://aws.amazon.com/cli/) (v2.x以上)
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) (v1.x以上)
+- [Node.js](https://nodejs.org/) (v18.x以上)
+- [npm](https://www.npmjs.com/) (v9.x以上)
+
+### インストール
 
 ```bash
+# リポジトリのクローン
+git clone <repository-url>
+cd teamviewer-survey-app
+
+# 依存関係のインストール
 npm install
 ```
+
+### デプロイ
+
+#### 方法1: 自動デプロイ（推奨）
+
+完全なデプロイフローを自動実行：
+
+```bash
+# 初回デプロイ（ガイド付き）
+npm run deploy:full:guided
+
+# 2回目以降のデプロイ
+npm run deploy:full
+```
+
+#### 方法2: 手動デプロイ
+
+段階的にデプロイを実行：
+
+```bash
+# 1. デプロイ前の検証
+npm run deploy:validate
+
+# 2. SSMパラメータの設定
+npm run deploy:setup
+
+# 3. ビルドとデプロイ
+npm run deploy:guided  # 初回
+npm run deploy         # 2回目以降
+```
+
+詳細なデプロイ手順は [DEPLOYMENT.md](./DEPLOYMENT.md) を参照してください。
+
+## 開発
 
 ### ビルド
 
 ```bash
-# バックエンドのビルド
+# Lambda関数のビルド
 npm run build
 
 # フロントエンドのビルド
 npm run build:frontend
+
+# 両方をビルド
+npm run build:all
 ```
 
 ### テスト
@@ -71,48 +102,116 @@ npm run build:frontend
 # すべてのテストを実行
 npm test
 
-# プロパティベーステストのみ実行
+# プロパティベーステストのみ
 npm run test:property
 
-# カバレッジレポート生成
+# カバレッジレポート付き
 npm run test:coverage
+
+# パフォーマンステスト（デプロイ後に実行）
+API_ENDPOINT=https://your-api-gateway-url npm run test:performance
 ```
 
-### リント
+パフォーマンステストの詳細は [PERFORMANCE_TEST.md](./PERFORMANCE_TEST.md) を参照してください。
+
+### コード品質
 
 ```bash
+# ESLintでコードをチェック
 npm run lint
+
+# ビルド成果物を削除
+npm run clean
 ```
 
-## 環境変数
+## プロジェクト構造
 
-以下の環境変数を設定してください：
+```
+teamviewer-survey-app/
+├── src/
+│   ├── lambda/              # Lambda関数
+│   │   ├── auth/           # 認証Lambda
+│   │   ├── survey/         # アンケートLambda
+│   │   └── report/         # レポートLambda
+│   ├── types/              # TypeScript型定義
+│   ├── utils/              # ユーティリティ関数
+│   └── frontend/           # フロントエンドコード
+├── scripts/                # デプロイスクリプト
+│   ├── deploy.sh          # 完全デプロイ（Bash）
+│   ├── deploy.ps1         # 完全デプロイ（PowerShell）
+│   ├── validate.sh        # 検証スクリプト（Bash）
+│   ├── validate.ps1       # 検証スクリプト（PowerShell）
+│   ├── setup-ssm-parameters.sh    # SSM設定（Bash）
+│   └── setup-ssm-parameters.ps1   # SSM設定（PowerShell）
+├── template.yaml          # AWS SAMテンプレート
+├── package.json
+├── tsconfig.json
+├── DEPLOYMENT.md          # 詳細なデプロイガイド
+└── README.md
+```
 
-- `COMMON_PASSWORD`: 共通パスワード
-- `ADMIN_PASSWORD`: 管理者パスワード
-- `JWT_SECRET`: JWT署名用シークレット
-- `SURVEY_START_DATE`: アンケート開始日（2026-03-15）
-- `SURVEY_END_DATE`: アンケート終了日（2026-06-27）
-- `DYNAMODB_SESSIONS_TABLE`: Sessionsテーブル名
-- `DYNAMODB_RESPONSES_TABLE`: Responsesテーブル名
+## デプロイされるリソース
 
-## 実装状況
+### Lambda関数
 
-- [x] タスク1: プロジェクト構造とコア型定義のセットアップ
-- [ ] タスク2: 認証Lambda関数の実装
-- [ ] タスク3: DynamoDBテーブル定義とデータアクセス層の実装
-- [ ] タスク4: アンケートLambda関数の実装
-- [ ] タスク5: チェックポイント - バックエンドの動作確認
-- [ ] タスク6: レポートLambda関数の実装
-- [ ] タスク7: エラーハンドリングとロギングの実装
-- [ ] タスク8: フロントエンド - ログインページの実装
-- [ ] タスク9: フロントエンド - アンケートページの実装
-- [ ] タスク10: フロントエンド - 管理者ダッシュボードの実装
-- [ ] タスク11: チェックポイント - フロントエンドの動作確認
-- [ ] タスク12: インフラストラクチャとデプロイ設定
-- [ ] タスク13: 統合テストとエンドツーエンドテスト
-- [ ] タスク14: 最終チェックポイント - 全体の動作確認
+- **AuthFunction**: 認証処理（`/auth/login`）
+- **SurveyFunction**: アンケート回答の保存・取得（`/survey`）
+- **ReportFunction**: 集計レポート生成（`/report`）
+
+### DynamoDBテーブル
+
+- **SessionsTable**: セッション管理（TTL有効）
+- **ResponsesTable**: アンケート回答データ
+
+### API Gateway
+
+- `POST /auth/login` - 認証
+- `GET /survey` - 回答取得
+- `POST /survey` - 回答送信
+- `GET /report` - レポート生成（管理者専用）
+
+## ログの確認
+
+```bash
+# 各Lambda関数のログを確認
+npm run logs:auth      # 認証Lambda
+npm run logs:survey    # アンケートLambda
+npm run logs:report    # レポートLambda
+npm run logs:all       # すべてのLambda
+```
+
+## トラブルシューティング
+
+問題が発生した場合は、以下を実行してください：
+
+```bash
+# デプロイ前の環境検証
+npm run deploy:validate
+```
+
+詳細なトラブルシューティング方法は [DEPLOYMENT.md](./DEPLOYMENT.md) を参照してください。
+
+## コスト見積もり
+
+AWS Lambda無料枠内で動作するように設計されています：
+
+- **Lambda**: 月間100万リクエスト、40万GB秒まで無料
+- **DynamoDB**: 月間25GBのストレージ、25ユニットの読み書きキャパシティまで無料
+- **API Gateway**: 月間100万APIコールまで無料（最初の12ヶ月）
+
+20〜25名の利用であれば、無料枠内で運用可能です。
+
+## セキュリティ
+
+- すべての通信はHTTPS経由
+- DynamoDBテーブルは暗号化済み
+- パスワードはSSM Parameter Store（SecureString）で管理
+- IAMロールは最小権限の原則に従って設定
 
 ## ライセンス
 
 MIT
+
+## サポート
+
+問題や質問がある場合は、[DEPLOYMENT.md](./DEPLOYMENT.md)のトラブルシューティングセクションを参照してください。

@@ -2,6 +2,8 @@
 // タスク7.2: パスワードの非露出チェック、機密情報のマスキング
 // 要件: 7.4
 
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
+
 /**
  * 機密情報のパターン
  */
@@ -143,6 +145,45 @@ export const getSecretFromEnv = (key: string): string => {
     throw new Error(`Environment variable ${key} is not set`);
   }
   return value;
+};
+
+/**
+ * SSMパラメータストアから機密情報を取得
+ * 要件: 7.3
+ */
+const ssmClient = new SSMClient({ region: process.env.AWS_REGION || 'ap-northeast-1' });
+const parameterCache: Record<string, { value: string; timestamp: number }> = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5分
+
+export const getSecretFromSSM = async (parameterName: string): Promise<string> => {
+  // キャッシュチェック
+  const cached = parameterCache[parameterName];
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value;
+  }
+
+  try {
+    const command = new GetParameterCommand({
+      Name: parameterName,
+      WithDecryption: true
+    });
+    const response = await ssmClient.send(command);
+    
+    if (!response.Parameter?.Value) {
+      throw new Error(`SSM parameter ${parameterName} not found`);
+    }
+
+    // キャッシュに保存
+    parameterCache[parameterName] = {
+      value: response.Parameter.Value,
+      timestamp: Date.now()
+    };
+
+    return response.Parameter.Value;
+  } catch (error) {
+    console.error(`Failed to get SSM parameter ${parameterName}:`, error);
+    throw new Error(`Failed to retrieve ${parameterName} from SSM`);
+  }
 };
 
 /**

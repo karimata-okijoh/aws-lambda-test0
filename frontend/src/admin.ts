@@ -28,7 +28,7 @@ interface ReportResponse {
 /**
  * API設定
  */
-const API_BASE_URL = process.env.API_BASE_URL || 'https://your-api-gateway-url.amazonaws.com';
+const API_BASE_URL = 'https://bycx9lu24g.execute-api.ap-northeast-1.amazonaws.com/prod'; // 本番環境用
 
 /**
  * メッセージ表示

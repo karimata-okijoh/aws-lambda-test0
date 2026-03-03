@@ -7,7 +7,7 @@
   const SURVEY_END_DATE = new Date('2026-06-27');
 
   // API エンドポイント（環境に応じて変更）
-  const API_BASE_URL = 'http://localhost:3000'; // 開発環境用
+  const API_BASE_URL = 'https://bycx9lu24g.execute-api.ap-northeast-1.amazonaws.com/prod'; // 本番環境用
 
   // 回答データの型定義
   interface TimeSlotResponse {
@@ -149,7 +149,7 @@
    * @param cell セル要素
    * @param isUsed 使用状態
    */
-  const updateCellDisplay = (cell: HTMLTableCellElement, isUsed: boolean): void => {
+  const updateCellDisplay = (cell: HTMLElement, isUsed: boolean): void => {
     if (isUsed) {
       cell.classList.add('used');
       cell.classList.remove('unused');
@@ -197,17 +197,21 @@
       
       timeSlots.forEach(timeSlot => {
         const cell = document.createElement('td');
-        cell.className = 'survey-cell';
         cell.dataset.date = dateStr;
         cell.dataset.timeSlot = timeSlot;
         
+        // セル内のボタン要素を作成
+        const cellButton = document.createElement('div');
+        cellButton.className = 'survey-cell';
+        
         // 既存の回答データがあれば反映
         const isUsed = surveyData[dateStr]?.[timeSlot] ?? false;
-        updateCellDisplay(cell, isUsed);
+        updateCellDisplay(cellButton, isUsed);
         
         // クリックイベントを設定
-        cell.addEventListener('click', () => handleCellClick(dateStr, timeSlot));
+        cellButton.addEventListener('click', () => handleCellClick(dateStr, timeSlot));
         
+        cell.appendChild(cellButton);
         row.appendChild(cell);
       });
       
@@ -265,10 +269,13 @@
     const currentValue = surveyData[date][timeSlot as keyof TimeSlotResponse];
     surveyData[date][timeSlot as keyof TimeSlotResponse] = !currentValue;
     
-    // セルの表示を更新
-    const cell = document.querySelector(`[data-date="${date}"][data-time-slot="${timeSlot}"]`) as HTMLTableCellElement;
-    if (cell) {
-      updateCellDisplay(cell, !currentValue);
+    // セルの表示を更新（tdの中のdiv要素を取得）
+    const td = document.querySelector(`[data-date="${date}"][data-time-slot="${timeSlot}"]`) as HTMLTableCellElement;
+    if (td) {
+      const cellButton = td.querySelector('.survey-cell') as HTMLElement;
+      if (cellButton) {
+        updateCellDisplay(cellButton, !currentValue);
+      }
     }
   };
 
@@ -298,7 +305,7 @@
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '/login.html';
+        window.location.href = 'index.html';
         return;
       }
       
@@ -314,7 +321,7 @@
         if (response.status === 401) {
           // 認証エラーの場合はログインページにリダイレクト
           localStorage.removeItem('token');
-          window.location.href = '/login.html';
+          window.location.href = 'index.html';
           return;
         }
         throw new Error('回答の取得に失敗しました');
@@ -378,7 +385,7 @@
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '/login.html';
+        window.location.href = 'index.html';
         return;
       }
       
@@ -405,7 +412,7 @@
         if (response.status === 401) {
           // 認証エラーの場合はログインページにリダイレクト
           localStorage.removeItem('token');
-          window.location.href = '/login.html';
+          window.location.href = 'index.html';
           return;
         }
         
@@ -442,7 +449,7 @@
     localStorage.removeItem('token');
     
     // ログインページにリダイレクト
-    window.location.href = '/login.html';
+    window.location.href = 'index.html';
   };
 
   /**
@@ -452,7 +459,7 @@
     // トークンの確認
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login.html';
+      window.location.href = 'index.html';
       return;
     }
     
