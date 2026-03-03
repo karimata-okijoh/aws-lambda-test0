@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamViewer利用状況アンケート - サンプル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header-title {
+            text-align: center;
+            flex: 1;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .user-icon {
+            width: 32px;
+            height: 32px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .user-email {
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        .logout-btn:hover {
+            color: #5568d3;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .week-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .week-selector button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .week-selector button:hover {
+            background: #5568d3;
+        }
+
+        .week-selector button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .week-selector span {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .survey-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .survey-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .survey-table th:last-child {
+            border-right: none;
+        }
+
+        .survey-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .survey-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .survey-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .survey-table td:last-child {
+            border-right: none;
+        }
+
+        .survey-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .survey-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .date-cell {
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .date-cell .day-name {
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .usage-cell {
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .usage-cell.used {
+            background: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .usage-cell.unused {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        .usage-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+        }
+
+        .legend-box.used {
+            background: #4caf50;
+        }
+
+        .legend-box.unused {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .survey-table th,
+            .survey-table td {
+                padding: 10px 5px;
+                font-size: 12px;
+            }
+
+            .date-cell {
+                padding-left: 10px;
+            }
+
+            .week-selector {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .legend {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div style="width: 200px;"></div> <!-- スペーサー -->
+                <div class="header-title">
+                    <h1>TeamViewer利用状況アンケート</h1>
+                </div>
+                <div class="user-info">
+                    <div class="user-icon">Y</div>
+                    <div>
+                        <div class="user-email">yamada@okijoh.co.jp</div>
+                        <button class="logout-btn" onclick="logout()">ログアウト</button>
+                    </div>
+                </div>
+            </div>
+            <p>期間: 2026年3月15日 ～ 2026年6月27日</p>
+            <p>各セルをクリックして利用状況を入力してください</p>
+        </div>
+
+        <div class="week-selector">
+            <button id="prevWeek">← 前の週</button>
+            <span id="weekRange">2026年4月1日 - 4月7日</span>
+            <button id="nextWeek">次の週 →</button>
+        </div>
+
+        <table class="survey-table">
+            <thead>
+                <tr>
+                    <th>日付</th>
+                    <th>午前<br>(9:00-12:00)</th>
+                    <th>午後<br>(13:00-18:00)</th>
+                    <th>18時以降<br>(18:00-)</th>
+                </tr>
+            </thead>
+            <tbody id="surveyBody">
+                <!-- 動的に生成 -->
+            </tbody>
+        </table>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box used"></div>
+                <span>使用</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box unused"></div>
+                <span>未使用</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-secondary" id="clearBtn">クリア</button>
+            <button class="btn btn-primary" id="saveBtn">保存</button>
+        </div>
+    </div>
+
+    <script>
+        // ログインユーザー情報（実際はサーバーから取得）
+        const currentUser = {
+            email: 'yamada@okijoh.co.jp',
+            name: 'Yamada'
+        };
+
+        // アンケート期間
+        const SURVEY_START = new Date('2026-03-15');
+        const SURVEY_END = new Date('2026-06-27');
+        
+        // 現在表示中の週の開始日
+        let currentWeekStart = new Date('2026-03-15');
+        
+        // 回答データ（日付をキーとした3次元配列）
+        let surveyData = {};
+
+        // 曜日名
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+
+        // 初期化
+        function init() {
+            // ユーザー情報を表示
+            updateUserInfo();
+            
+            renderWeek();
+            updateWeekSelector();
+            
+            document.getElementById('prevWeek').addEventListener('click', () => {
+                changeWeek(-7);
+            });
+            
+            document.getElementById('nextWeek').addEventListener('click', () => {
+                changeWeek(7);
+            });
+            
+            document.getElementById('clearBtn').addEventListener('click', clearCurrentWeek);
+            document.getElementById('saveBtn').addEventListener('click', saveData);
+        }
+
+        // ユーザー情報の表示更新
+        function updateUserInfo() {
+            const userIcon = document.querySelector('.user-icon');
+            const userEmail = document.querySelector('.user-email');
+            
+            // メールアドレスの最初の文字をアイコンに表示
+            const firstChar = currentUser.email.charAt(0).toUpperCase();
+            userIcon.textContent = firstChar;
+            userEmail.textContent = currentUser.email;
+        }
+
+        // ログアウト
+        function logout() {
+            if (confirm('ログアウトしますか？')) {
+                alert('ログアウトしました');
+                // 実際のシステムではログインページにリダイレクト
+                // window.location.href = '/login';
+            }
+        }
+
+        // 週の表示を更新
+        function renderWeek() {
+            const tbody = document.getElementById('surveyBody');
+            tbody.innerHTML = '';
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+                
+                // アンケート期間外はスキップ
+                if (date < SURVEY_START || date > SURVEY_END) {
+                    continue;
+                }
+                
+                const dateStr = formatDate(date);
+                const dayName = dayNames[date.getDay()];
+                
+                // データがない場合は初期化
+                if (!surveyData[dateStr]) {
+                    surveyData[dateStr] = {
+                        morning: false,
+                        afternoon: false,
+                        evening: false
+                    };
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="date-cell">
+                        ${dateStr} <span class="day-name">(${dayName})</span>
+                    </td>
+                    <td class="usage-cell ${surveyData[dateStr].morning ? 'used' : 'unused'}" 
+                        data-date="${dateStr}" data-period="morning">
+                        ${surveyData[dateStr].morning ? '✓' : '-'}
+                    </td>
+                    <td class="usage-cell ${surveyData[dateStr].afternoon ? 'used' : 'unused'}" 
+                        data-date="${dateStr}" data-period="afternoon">
+                        ${surveyData[dateStr].afternoon ? '✓' : '-'}
+                    </td>
+                    <td class="usage-cell ${surveyData[dateStr].evening ? 'used' : 'unused'}" 
+                        data-date="${dateStr}" data-period="evening">
+                        ${surveyData[dateStr].evening ? '✓' : '-'}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            }
+            
+            // セルのクリックイベント
+            document.querySelectorAll('.usage-cell').forEach(cell => {
+                cell.addEventListener('click', toggleUsage);
+            });
+        }
+
+        // 使用状況の切り替え
+        function toggleUsage(e) {
+            const cell = e.currentTarget;
+            const date = cell.dataset.date;
+            const period = cell.dataset.period;
+            
+            // データを反転
+            surveyData[date][period] = !surveyData[date][period];
+            
+            // 表示を更新
+            if (surveyData[date][period]) {
+                cell.classList.remove('unused');
+                cell.classList.add('used');
+                cell.textContent = '✓';
+            } else {
+                cell.classList.remove('used');
+                cell.classList.add('unused');
+                cell.textContent = '-';
+            }
+        }
+
+        // 週を変更
+        function changeWeek(days) {
+            const newDate = new Date(currentWeekStart);
+            newDate.setDate(newDate.getDate() + days);
+            
+            // 範囲チェック
+            if (newDate >= SURVEY_START && newDate <= SURVEY_END) {
+                currentWeekStart = newDate;
+                renderWeek();
+                updateWeekSelector();
+            }
+        }
+
+        // 週選択UIの更新
+        function updateWeekSelector() {
+            const endDate = new Date(currentWeekStart);
+            endDate.setDate(endDate.getDate() + 6);
+            
+            const startStr = formatDate(currentWeekStart);
+            const endStr = formatDate(endDate);
+            
+            document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
+            
+            // ボタンの有効/無効
+            const prevWeek = new Date(currentWeekStart);
+            prevWeek.setDate(prevWeek.getDate() - 7);
+            document.getElementById('prevWeek').disabled = prevWeek < SURVEY_START;
+            
+            const nextWeek = new Date(currentWeekStart);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('nextWeek').disabled = nextWeek > SURVEY_END;
+        }
+
+        // 現在の週をクリア
+        function clearCurrentWeek() {
+            if (confirm('現在表示中の週のデータをクリアしますか？')) {
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(currentWeekStart);
+                    date.setDate(date.getDate() + i);
+                    const dateStr = formatDate(date);
+                    
+                    if (surveyData[dateStr]) {
+                        surveyData[dateStr] = {
+                            morning: false,
+                            afternoon: false,
+                            evening: false
+                        };
+                    }
+                }
+                renderWeek();
+            }
+        }
+
+        // データ保存
+        function saveData() {
+            console.log('保存データ:', surveyData);
+            alert('データを保存しました！\n（実際のシステムではサーバーに送信されます）');
+        }
+
+        // 日付フォーマット
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>
