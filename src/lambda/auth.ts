@@ -4,19 +4,18 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import * as jwt from 'jsonwebtoken';
 import { LoginRequest, LoginResponse, ErrorCode, JWTPayload } from '../types';
-import { isValidDomain } from '../utils/validators';
+import { isValidDomain, sanitizeEmail } from '../utils/validators';
 import { ADMIN_EMAIL, JWT_EXPIRATION, HTTP_STATUS } from '../utils/constants';
-import { logInfo, logError } from '../utils/logger';
+import { logInfo } from '../utils/logger';
+import { globalErrorHandler, AppError, logSuccess } from '../utils/errorHandler';
+import { getSecretFromEnv, sanitizeResponse } from '../utils/security';
 
 /**
- * 環境変数の取得
+ * 環境変数の取得（セキュアバージョン）
+ * 要件: 7.3
  */
 const getEnvVar = (key: string): string => {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Environment variable ${key} is not set`);
-  }
-  return value;
+  return getSecretFromEnv(key);
 };
 
 /**
@@ -112,7 +111,7 @@ export const handler = async (
     }
 
     const request: LoginRequest = JSON.parse(event.body);
-    const { email, password } = request;
+    let { email, password } = request;
 
     // 入力検証
     if (!email || !password) {
@@ -130,82 +129,65 @@ export const handler = async (
       };
     }
 
+    // メールアドレスのサニタイズ（要件: 7.5）
+    try {
+      email = sanitizeEmail(email);
+    } catch (sanitizeError) {
+      logInfo('Email sanitization failed', { email });
+      throw new AppError(ErrorCode.VAL_002);
+    }
+
     // ドメイン検証（要件: 1.2, 1.8）
     const domainValidation = validateDomain(email);
     if (!domainValidation.valid) {
       logInfo('Domain validation failed', { email });
-      return {
-        statusCode: HTTP_STATUS.FORBIDDEN,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-          success: false,
-          role: 'user',
-          message: domainValidation.message
-        } as LoginResponse)
-      };
+      throw new AppError(ErrorCode.AUTH_001);
     }
 
     // パスワード検証（要件: 1.3, 1.4）
     const passwordValidation = validatePassword(email, password);
     if (!passwordValidation.valid) {
       logInfo('Password validation failed', { email });
-      return {
-        statusCode: HTTP_STATUS.UNAUTHORIZED,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-          success: false,
-          role: 'user',
-          message: passwordValidation.message
-        } as LoginResponse)
-      };
+      throw new AppError(ErrorCode.AUTH_002);
     }
 
     // JWTトークン生成（要件: 1.6, 7.3）
     const token = generateToken(email, passwordValidation.role!);
 
-    logInfo('Authentication successful', {
+    // 成功ログの記録（要件: 10.2）
+    logSuccess('authentication', {
       email,
       role: passwordValidation.role
     });
 
-    // 成功レスポンス（要件: 1.5）
+    // 成功レスポンス（要件: 1.5, 7.4）
+    const response: LoginResponse = {
+      success: true,
+      token,
+      role: passwordValidation.role!
+    };
+
+    // レスポンスのセキュリティチェック（要件: 7.4）
+    const sanitizedResponse = sanitizeResponse(response);
+
     return {
       statusCode: HTTP_STATUS.OK,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({
-        success: true,
-        token,
-        role: passwordValidation.role!
-      } as LoginResponse)
+      body: JSON.stringify(sanitizedResponse)
     };
 
   } catch (error) {
-    // エラーハンドリング（要件: 1.7）
-    logError('Authentication error', error as Error, {
-      path: event.path,
-      method: event.httpMethod
-    });
-
-    return {
-      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({
-        success: false,
-        role: 'user',
-        message: 'システムエラーが発生しました'
-      } as LoginResponse)
-    };
+    // グローバルエラーハンドラーを使用（要件: 1.7, 10.1）
+    return await globalErrorHandler(
+      error instanceof AppError ? error.errorCode : (error as Error),
+      {
+        requestId: event.requestContext?.requestId,
+        functionName: 'AuthLambda',
+        userId: event.body ? JSON.parse(event.body).email : undefined
+      }
+    );
   }
 };

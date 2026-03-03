@@ -1,5 +1,7 @@
 // ロギングユーティリティ
 
+import { maskSensitiveData, validateLogSafety } from './security';
+
 /**
  * ログレベル
  */
@@ -23,10 +25,20 @@ export interface LogEntry {
 
 /**
  * ログ出力（CloudWatch Logsに記録）
+ * 要件: 7.4 - パスワードの非露出
  */
 export const log = (entry: LogEntry): void => {
+  // セキュリティチェック（要件: 7.4）
+  validateLogSafety(entry);
+  
+  // 機密情報をマスキング
+  const sanitizedEntry = {
+    ...entry,
+    context: entry.context ? maskSensitiveData(entry.context) : undefined
+  };
+  
   // CloudWatch Logsに構造化ログとして出力
-  console.log(JSON.stringify(entry));
+  console.log(JSON.stringify(sanitizedEntry));
 };
 
 /**

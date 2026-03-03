@@ -10,19 +10,17 @@ import {
   JWTPayload
 } from '../types';
 import { saveResponse, getResponse } from '../utils/dynamodb';
-import { isValidDateFormat } from '../utils/validators';
+import { isValidDateFormat, sanitizeInput } from '../utils/validators';
 import { SURVEY_PERIOD, HTTP_STATUS } from '../utils/constants';
 import { logInfo, logError } from '../utils/logger';
+import { getSecretFromEnv, sanitizeResponse } from '../utils/security';
 
 /**
- * 環境変数の取得
+ * 環境変数の取得（セキュアバージョン）
+ * 要件: 7.3
  */
 const getEnvVar = (key: string): string => {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Environment variable ${key} is not set`);
-  }
-  return value;
+  return getSecretFromEnv(key);
 };
 
 /**
@@ -83,7 +81,7 @@ const checkSurveyPeriod = (currentDate: Date): { valid: boolean; errorCode?: Err
 
 /**
  * 入力データの検証
- * 要件: 2.4, 2.7
+ * 要件: 2.4, 2.7, 7.5
  */
 const validateSurveyData = (
   responses: Record<string, { morning: boolean; afternoon: boolean; evening: boolean }>
@@ -99,12 +97,21 @@ const validateSurveyData = (
   
   // 各日付の検証
   for (const [date, timeSlots] of Object.entries(responses)) {
-    // 日付形式の検証
-    if (!isValidDateFormat(date)) {
+    // 日付形式の検証とサニタイズ（要件: 7.5）
+    try {
+      const sanitizedDate = sanitizeInput(date);
+      if (!isValidDateFormat(sanitizedDate)) {
+        return {
+          valid: false,
+          errorCode: ErrorCode.VAL_002,
+          message: `不正な日付形式です: ${date}`
+        };
+      }
+    } catch (error) {
       return {
         valid: false,
-        errorCode: ErrorCode.VAL_002,
-        message: `不正な日付形式です: ${date}`
+        errorCode: ErrorCode.VAL_003,
+        message: `日付に使用できない文字が含まれています: ${date}`
       };
     }
     
@@ -239,18 +246,23 @@ const handleSubmitSurvey = async (
         dateCount: Object.keys(responses).length
       });
 
-      // 成功レスポンス
+      // 成功レスポンス（要件: 7.4）
+      const response: SurveyResponse = {
+        success: true,
+        data: savedData || undefined,
+        message: '回答が正常に保存されました'
+      };
+
+      // レスポンスのセキュリティチェック
+      const sanitizedResponseData = sanitizeResponse(response);
+
       return {
         statusCode: HTTP_STATUS.OK,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({
-          success: true,
-          data: savedData,
-          message: '回答が正常に保存されました'
-        } as SurveyResponse)
+        body: JSON.stringify(sanitizedResponseData)
       };
     } catch (error) {
       logError('Failed to save survey response', error as Error, {
@@ -383,19 +395,24 @@ const handleGetSurvey = async (
         currentWeekStart
       });
 
-      // 既存回答の返却（存在しない場合は空）（要件: 4.2）
+      // 既存回答の返却（存在しない場合は空）（要件: 4.2, 7.4）
+      const response: SurveyResponse = {
+        success: true,
+        data: existingResponse || undefined,
+        currentWeekStart,
+        message: existingResponse ? '既存の回答を取得しました' : '回答データがありません'
+      };
+
+      // レスポンスのセキュリティチェック
+      const sanitizedResponseData = sanitizeResponse(response);
+
       return {
         statusCode: HTTP_STATUS.OK,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({
-          success: true,
-          data: existingResponse || undefined,
-          currentWeekStart,
-          message: existingResponse ? '既存の回答を取得しました' : '回答データがありません'
-        } as SurveyResponse)
+        body: JSON.stringify(sanitizedResponseData)
       };
     } catch (error) {
       logError('Failed to retrieve survey response', error as Error, {

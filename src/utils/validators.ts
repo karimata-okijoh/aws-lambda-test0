@@ -26,10 +26,72 @@ export const isValidDateFormat = (date: string): boolean => {
 
 /**
  * 入力データのサニタイズ
+ * インジェクション攻撃を防ぐために危険な文字列をエスケープ
+ * 要件: 7.5
  */
 export const sanitizeInput = (input: string): string => {
-  // TODO: タスク7で実装
-  return input.trim();
+  if (typeof input !== 'string') {
+    return '';
+  }
+
+  // 基本的なトリミング
+  let sanitized = input.trim();
+
+  // 危険なパターンのチェック（エスケープ前に実行）
+  const dangerousPatterns = [
+    /(\bOR\b|\bAND\b)\s+.*=/gi,   // SQL論理演算子（スペース必須）
+    /;\s*(-{2}|\/\*|DROP|DELETE|UPDATE|INSERT)/gi,  // SQLコメントまたは危険なSQL文
+    /<script[^>]*>/gi,             // スクリプトタグ（開始タグのみ）
+    /javascript:/gi,               // JavaScriptプロトコル
+    /on\w+\s*=/gi                  // イベントハンドラー
+  ];
+
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(sanitized)) {
+      throw new Error('VAL_003: 入力内容に使用できない文字が含まれています');
+    }
+  }
+
+  // HTMLエスケープ（XSS対策）
+  sanitized = sanitized
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+
+  return sanitized;
+};
+
+/**
+ * メールアドレスのサニタイズ
+ * メールアドレス専用のサニタイズ処理
+ * 要件: 7.5
+ */
+export const sanitizeEmail = (email: string): string => {
+  if (typeof email !== 'string') {
+    return '';
+  }
+
+  // 基本的なトリミングと小文字化
+  let sanitized = email.trim().toLowerCase();
+
+  // メールアドレスの形式チェック
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(sanitized)) {
+    throw new Error('VAL_002: 入力形式が正しくありません');
+  }
+
+  // 危険な文字列のチェック
+  const dangerousChars = ['<', '>', '"', "'", ';', '\\', '/', '(', ')'];
+  for (const char of dangerousChars) {
+    if (sanitized.includes(char)) {
+      throw new Error('VAL_003: 入力内容に使用できない文字が含まれています');
+    }
+  }
+
+  return sanitized;
 };
 
 /**

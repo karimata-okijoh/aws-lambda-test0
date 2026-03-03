@@ -114,6 +114,14 @@ Resources:
         AllowOrigin: "'*'"
       Auth:
         DefaultAuthorizer: NONE
+      # HTTPS通信の強制設定（要件: 7.1）
+      EndpointConfiguration:
+        Type: REGIONAL
+      # セキュリティポリシーの設定
+      Domain:
+        SecurityPolicy: TLS_1_2
+      # API Gatewayのデフォルト設定でHTTPSのみ許可
+      # HTTPリクエストは自動的にHTTPSにリダイレクトされる
 
 Outputs:
   SessionsTableName:

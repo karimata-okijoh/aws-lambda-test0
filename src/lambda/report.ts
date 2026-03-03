@@ -11,16 +11,14 @@ import {
 import { getAllResponses } from '../utils/dynamodb';
 import { ADMIN_EMAIL, HTTP_STATUS } from '../utils/constants';
 import { logInfo, logError } from '../utils/logger';
+import { getSecretFromEnv, sanitizeResponse } from '../utils/security';
 
 /**
- * 環境変数の取得
+ * 環境変数の取得（セキュアバージョン）
+ * 要件: 7.3
  */
 const getEnvVar = (key: string): string => {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Environment variable ${key} is not set`);
-  }
-  return value;
+  return getSecretFromEnv(key);
 };
 
 /**
@@ -265,25 +263,30 @@ export const handler = async (
         generatedAt
       });
 
-      // レスポンス（要件: 6.6 - 10秒以内に結果を生成）
+      // レスポンス（要件: 6.6 - 10秒以内に結果を生成、7.4 - パスワードの非露出）
+      const response: ReportResponse = {
+        success: true,
+        data: {
+          totalResponses,
+          targetCount,
+          responseRate,
+          timeSlotStats,
+          usagePatterns,
+          generatedAt
+        },
+        message: 'レポートが正常に生成されました'
+      };
+
+      // レスポンスのセキュリティチェック
+      const sanitizedResponseData = sanitizeResponse(response);
+
       return {
         statusCode: HTTP_STATUS.OK,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({
-          success: true,
-          data: {
-            totalResponses,
-            targetCount,
-            responseRate,
-            timeSlotStats,
-            usagePatterns,
-            generatedAt
-          },
-          message: 'レポートが正常に生成されました'
-        } as ReportResponse)
+        body: JSON.stringify(sanitizedResponseData)
       };
 
     } catch (error) {
