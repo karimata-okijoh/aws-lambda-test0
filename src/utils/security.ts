@@ -10,7 +10,6 @@ const SENSITIVE_PATTERNS = [
   /passwd/gi,
   /pwd/gi,
   /secret/gi,
-  /token/gi,
   /api[_-]?key/gi,
   /access[_-]?key/gi,
   /private[_-]?key/gi
@@ -24,7 +23,6 @@ const SENSITIVE_KEYS = [
   'passwd',
   'pwd',
   'secret',
-  'token',
   'apiKey',
   'api_key',
   'accessKey',

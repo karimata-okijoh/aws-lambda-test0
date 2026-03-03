@@ -37,6 +37,11 @@ export const sanitizeInput = (input: string): string => {
   // 基本的なトリミング
   let sanitized = input.trim();
 
+  // 空文字列の場合はそのまま返す（エラーにしない）
+  if (sanitized.length === 0) {
+    return sanitized;
+  }
+
   // 危険なパターンのチェック（エスケープ前に実行）
   const dangerousPatterns = [
     /(\bOR\b|\bAND\b)\s+.*=/gi,   // SQL論理演算子（スペース必須）
@@ -71,11 +76,16 @@ export const sanitizeInput = (input: string): string => {
  */
 export const sanitizeEmail = (email: string): string => {
   if (typeof email !== 'string') {
-    return '';
+    throw new Error('VAL_002: 入力形式が正しくありません');
   }
 
   // 基本的なトリミングと小文字化
   let sanitized = email.trim().toLowerCase();
+
+  // 空文字列チェック
+  if (sanitized.length === 0) {
+    throw new Error('VAL_002: 入力形式が正しくありません');
+  }
 
   // メールアドレスの形式チェック
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

@@ -139,8 +139,9 @@ describe('Security Utility - Property-Based Tests', () => {
             // sanitizeResponseを使用
             const sanitized = sanitizeResponse(response);
 
-            // トークンとAPIキーがマスキングされていることを確認
-            expect((sanitized as any).token).toBe('***MASKED***');
+            // トークンはマスキングされない（JWTトークンは認証レスポンスで必要）
+            expect((sanitized as any).token).toBe(response.token);
+            // APIキーはマスキングされる
             expect((sanitized as any).apiKey).toBe('***MASKED***');
 
             // 他のフィールドは保持されていることを確認

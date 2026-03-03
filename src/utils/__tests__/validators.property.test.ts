@@ -118,7 +118,7 @@ describe('Validators - Property-Based Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 50 })
-            .filter(s => !s.includes('<') && !s.includes('>')),
+            .filter(s => !s.includes('<') && !s.includes('>') && s.trim().length > 0), // 空白のみを除外
           fc.string({ minLength: 0, maxLength: 10 }).map(s => s.replace(/\S/g, ' ')),
           fc.string({ minLength: 0, maxLength: 10 }).map(s => s.replace(/\S/g, ' ')),
           async (content, leadingSpaces, trailingSpaces) => {

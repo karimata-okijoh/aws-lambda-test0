@@ -8,9 +8,146 @@
 </head>
 <body>
   <div class="container">
-    <h1>管理者ダッシュボード</h1>
-    <p>アンケート結果の集計</p>
-    <!-- タスク10で実装予定 -->
+    <!-- ヘッダー -->
+    <div class="admin-header">
+      <div class="header-content">
+        <div>
+          <h1>管理者ダッシュボード</h1>
+          <p class="subtitle">TeamViewerアンケート集計結果</p>
+        </div>
+        <button id="logout-btn" class="btn-logout">ログアウト</button>
+      </div>
+    </div>
+
+    <!-- メッセージエリア -->
+    <div id="message-area" class="message-area" role="alert" aria-live="polite"></div>
+
+    <!-- レポート生成ボタン -->
+    <div class="report-actions">
+      <button id="generate-report-btn" class="btn-primary">
+        <span class="btn-icon">📊</span>
+        レポート生成
+      </button>
+    </div>
+
+    <!-- ローディング表示 -->
+    <div id="loading" class="loading" style="display: none;">
+      <div class="loading-spinner"></div>
+      <p>レポートを生成中...</p>
+    </div>
+
+    <!-- レポート表示エリア -->
+    <div id="report-container" class="report-container" style="display: none;">
+      <!-- 回答総数表示 -->
+      <div class="stats-card">
+        <h2 class="card-title">回答状況</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">回答総数</div>
+            <div class="stat-value" id="total-responses">-</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">対象人数</div>
+            <div class="stat-value" id="target-count">20-25名</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">回答率</div>
+            <div class="stat-value" id="response-rate">-%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 時間帯別利用統計 -->
+      <div class="stats-card">
+        <h2 class="card-title">時間帯別利用統計</h2>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>時間帯</th>
+                <th>利用者数</th>
+                <th>利用率</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>午前中</strong>
+                  <span class="time-range">(9:00-12:00)</span>
+                </td>
+                <td id="morning-count">-</td>
+                <td>
+                  <div class="progress-bar">
+                    <div id="morning-bar" class="progress-fill" style="width: 0%"></div>
+                  </div>
+                  <span id="morning-percentage">-%</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>午後</strong>
+                  <span class="time-range">(13:00-18:00)</span>
+                </td>
+                <td id="afternoon-count">-</td>
+                <td>
+                  <div class="progress-bar">
+                    <div id="afternoon-bar" class="progress-fill" style="width: 0%"></div>
+                  </div>
+                  <span id="afternoon-percentage">-%</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>18時以降</strong>
+                  <span class="time-range">(18:00-)</span>
+                </td>
+                <td id="evening-count">-</td>
+                <td>
+                  <div class="progress-bar">
+                    <div id="evening-bar" class="progress-fill" style="width: 0%"></div>
+                  </div>
+                  <span id="evening-percentage">-%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 利用パターン分布 -->
+      <div class="stats-card">
+        <h2 class="card-title">利用パターン分布</h2>
+        <div class="pattern-grid">
+          <div class="pattern-item">
+            <div class="pattern-icon all-time">🟢</div>
+            <div class="pattern-label">全時間帯利用</div>
+            <div class="pattern-value" id="pattern-all">-</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon two-time">🟡</div>
+            <div class="pattern-label">2時間帯利用</div>
+            <div class="pattern-value" id="pattern-two">-</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon one-time">🟠</div>
+            <div class="pattern-label">1時間帯利用</div>
+            <div class="pattern-value" id="pattern-one">-</div>
+          </div>
+          <div class="pattern-item">
+            <div class="pattern-icon no-usage">⚪</div>
+            <div class="pattern-label">未利用</div>
+            <div class="pattern-value" id="pattern-none">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- レポート生成日時 -->
+      <div class="report-footer">
+        <p class="generated-at">
+          レポート生成日時: <span id="generated-at">-</span>
+        </p>
+      </div>
+    </div>
   </div>
   <script src="dist/admin.js"></script>
 </body>

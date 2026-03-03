@@ -122,9 +122,11 @@ describe('Input Sanitization', () => {
         .toThrow('VAL_002: 入力形式が正しくありません');
     });
 
-    it('文字列以外の入力に対して空文字列を返すこと', () => {
-      expect(sanitizeEmail(null as any)).toBe('');
-      expect(sanitizeEmail(undefined as any)).toBe('');
+    it('文字列以外の入力に対してエラーをスローすること', () => {
+      expect(() => sanitizeEmail(null as any))
+        .toThrow('VAL_002: 入力形式が正しくありません');
+      expect(() => sanitizeEmail(undefined as any))
+        .toThrow('VAL_002: 入力形式が正しくありません');
     });
   });
 

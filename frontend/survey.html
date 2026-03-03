@@ -8,9 +8,67 @@
 </head>
 <body>
   <div class="container">
-    <h1>TeamViewerアンケート</h1>
-    <p>1週間の利用状況を入力してください</p>
-    <!-- タスク9で実装予定 -->
+    <!-- ヘッダー部 -->
+    <header class="survey-header">
+      <div class="header-content">
+        <h1>TeamViewerアンケート</h1>
+        <div class="user-info">
+          <span id="user-email" class="user-email"></span>
+          <button id="logout-btn" class="btn-logout" aria-label="ログアウト">ログアウト</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 週選択部 -->
+    <div class="week-navigation">
+      <button id="prev-week-btn" class="btn-week" aria-label="前の週">
+        <span aria-hidden="true">◀</span> 前の週
+      </button>
+      <div class="week-display">
+        <span id="week-range" class="week-range"></span>
+      </div>
+      <button id="next-week-btn" class="btn-week" aria-label="次の週">
+        次の週 <span aria-hidden="true">▶</span>
+      </button>
+    </div>
+
+    <!-- メッセージ表示エリア -->
+    <div id="message-area" class="message-area" role="alert" aria-live="polite"></div>
+
+    <!-- アンケート表 -->
+    <div class="survey-table-container">
+      <table class="survey-table">
+        <thead>
+          <tr>
+            <th scope="col">日付</th>
+            <th scope="col">午前中<br><span class="time-range">(9:00-12:00)</span></th>
+            <th scope="col">午後<br><span class="time-range">(13:00-18:00)</span></th>
+            <th scope="col">18時以降<br><span class="time-range">(18:00-)</span></th>
+          </tr>
+        </thead>
+        <tbody id="survey-table-body">
+          <!-- JavaScriptで動的に生成 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 凡例 -->
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-icon used">✓</span>
+        <span>使用</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-icon unused">-</span>
+        <span>未使用</span>
+      </div>
+    </div>
+
+    <!-- アクションボタン -->
+    <div class="action-buttons">
+      <button id="clear-btn" class="btn-secondary">クリア</button>
+      <button id="save-btn" class="btn-primary">保存</button>
+    </div>
   </div>
   <script src="dist/survey.js"></script>
 </body>

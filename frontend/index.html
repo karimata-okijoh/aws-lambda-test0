@@ -8,9 +8,40 @@
 </head>
 <body>
   <div class="container">
-    <h1>TeamViewerアンケート</h1>
-    <p>ログインしてアンケートに回答してください</p>
-    <!-- タスク8で実装予定 -->
+    <div class="login-card">
+      <h1>TeamViewerアンケート</h1>
+      <p class="subtitle">ログインしてアンケートに回答してください</p>
+      
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="email">メールアドレス</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="your.name@okijoh.co.jp"
+            required
+            autocomplete="email"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="password">パスワード</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="パスワードを入力"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+        
+        <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
+        
+        <button type="submit" class="btn-primary">ログイン</button>
+      </form>
+    </div>
   </div>
   <script src="dist/login.js"></script>
 </body>

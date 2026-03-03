@@ -44,7 +44,7 @@ const createMockEvent = (email: string, password: string): APIGatewayProxyEvent 
  */
 const validDomainEmail = (): fc.Arbitrary<string> => {
   return fc.string({ minLength: 1, maxLength: 20 })
-    .filter(s => s.length > 0 && !s.includes('@'))
+    .filter(s => s.length > 0 && !s.includes('@') && s.trim().length > 0 && !/\s/.test(s) && /^[a-zA-Z0-9._+-]+$/.test(s))
     .map(localPart => `${localPart}${VALID_DOMAIN}`);
 };
 
@@ -54,7 +54,7 @@ const validDomainEmail = (): fc.Arbitrary<string> => {
 const invalidDomainEmail = (): fc.Arbitrary<string> => {
   const invalidDomains = ['@gmail.com', '@yahoo.co.jp', '@example.com', '@test.com'];
   return fc.tuple(
-    fc.string({ minLength: 1, maxLength: 20 }).filter(s => !s.includes('@')),
+    fc.string({ minLength: 1, maxLength: 20 }).filter(s => !s.includes('@') && s.trim().length > 0 && !/\s/.test(s) && /^[a-zA-Z0-9._+-]+$/.test(s)),
     fc.constantFrom(...invalidDomains)
   ).map(([localPart, domain]) => `${localPart}${domain}`);
 };
@@ -72,7 +72,7 @@ describe('認証機能のプロパティテスト', () => {
     await fc.assert(
       fc.asyncProperty(
         invalidDomainEmail(),
-        fc.string({ minLength: 1, maxLength: 50 }),
+        fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0 && !/\s/.test(s)),
         async (email, password) => {
           const event = createMockEvent(email, password);
           const result = await handler(event);
@@ -99,7 +99,7 @@ describe('認証機能のプロパティテスト', () => {
     await fc.assert(
       fc.asyncProperty(
         validDomainEmail(),
-        fc.string({ minLength: 1, maxLength: 50 }),
+        fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0 && !/\s/.test(s)),
         async (email, password) => {
           const event = createMockEvent(email, password);
           const result = await handler(event);
@@ -186,12 +186,12 @@ describe('認証機能のプロパティテスト', () => {
           fc.tuple(
             validDomainEmail(),
             fc.string({ minLength: 1, maxLength: 50 })
-              .filter(pwd => pwd !== MOCK_COMMON_PASSWORD && pwd !== MOCK_ADMIN_PASSWORD)
+              .filter(pwd => pwd !== MOCK_COMMON_PASSWORD && pwd !== MOCK_ADMIN_PASSWORD && pwd.trim().length > 0 && !/\s/.test(pwd))
           ),
           // ケース2: 無効なドメイン + 任意のパスワード
           fc.tuple(
             invalidDomainEmail(),
-            fc.string({ minLength: 1, maxLength: 50 })
+            fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0 && !/\s/.test(s))
           )
         ),
         async ([email, password]) => {

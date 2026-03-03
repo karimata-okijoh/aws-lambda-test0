@@ -20,12 +20,12 @@ describe('Security Utilities', () => {
       expect(containsSensitiveData(data)).toBe(true);
     });
 
-    it('トークンを含むオブジェクトを検出すること', () => {
+    it('トークンを含むオブジェクトは機密情報として扱わないこと（JWTトークンは認証レスポンスで必要）', () => {
       const data = {
         email: 'test@okijoh.co.jp',
         token: 'abc123xyz'
       };
-      expect(containsSensitiveData(data)).toBe(true);
+      expect(containsSensitiveData(data)).toBe(false);
     });
 
     it('機密情報を含まないオブジェクトを正しく判定すること', () => {
@@ -67,14 +67,14 @@ describe('Security Utilities', () => {
       expect(masked.password).toBe('***MASKED***');
     });
 
-    it('トークンフィールドをマスキングすること', () => {
+    it('トークンフィールドはマスキングしないこと（JWTトークンは認証レスポンスで必要）', () => {
       const data = {
         email: 'test@okijoh.co.jp',
         token: 'abc123xyz'
       };
       const masked = maskSensitiveData(data) as Record<string, unknown>;
       expect(masked.email).toBe('test@okijoh.co.jp');
-      expect(masked.token).toBe('***MASKED***');
+      expect(masked.token).toBe('abc123xyz');
     });
 
     it('ネストされたオブジェクト内のパスワードをマスキングすること', () => {

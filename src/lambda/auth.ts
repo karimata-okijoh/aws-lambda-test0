@@ -113,8 +113,8 @@ export const handler = async (
     const request: LoginRequest = JSON.parse(event.body);
     let { email, password } = request;
 
-    // 入力検証
-    if (!email || !password) {
+    // 入力検証（空白文字のトリミング後にチェック）
+    if (!email || !password || email.trim() === '' || password.trim() === '') {
       return {
         statusCode: HTTP_STATUS.BAD_REQUEST,
         headers: {
@@ -128,6 +128,10 @@ export const handler = async (
         } as LoginResponse)
       };
     }
+
+    // 空白のトリミング
+    email = email.trim();
+    password = password.trim();
 
     // メールアドレスのサニタイズ（要件: 7.5）
     try {
