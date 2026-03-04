@@ -156,9 +156,28 @@ const handleSubmitSurvey = async (
     }
 
     const request: SubmitSurveyRequest = JSON.parse(event.body);
-    const { token, responses } = request;
+    const { responses } = request;
 
-    // トークン検証
+    // Authorizationヘッダーからトークンを取得
+    const authHeader = event.headers?.Authorization || event.headers?.authorization;
+    
+    if (!authHeader) {
+      return {
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: '認証トークンが必要です'
+        } as SurveyResponse)
+      };
+    }
+
+    // "Bearer <token>" 形式からトークンを抽出
+    const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
+    
     if (!token) {
       return {
         statusCode: HTTP_STATUS.UNAUTHORIZED,
@@ -347,8 +366,25 @@ const handleGetSurvey = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // クエリパラメータからトークンを取得
-    const token = event.queryStringParameters?.token;
+    // Authorizationヘッダーからトークンを取得
+    const authHeader = event.headers?.Authorization || event.headers?.authorization;
+    
+    if (!authHeader) {
+      return {
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          success: false,
+          message: '認証トークンが必要です'
+        } as SurveyResponse)
+      };
+    }
+
+    // "Bearer <token>" 形式からトークンを抽出
+    const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : authHeader;
     
     if (!token) {
       return {

@@ -3,7 +3,7 @@
 // 即時実行関数でスコープを分離
 (function() {
   // アンケート期間の定数
-  const SURVEY_START_DATE = new Date('2026-03-15');
+  const SURVEY_START_DATE = new Date('2026-03-02');
   const SURVEY_END_DATE = new Date('2026-06-27');
 
   // API エンドポイント（環境に応じて変更）
@@ -403,7 +403,6 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          token,
           responses: surveyData
         })
       });

@@ -23,7 +23,7 @@ export interface LoginResponse {
  * アンケート回答送信リクエスト
  */
 export interface SubmitSurveyRequest {
-  token: string;                    // 認証トークン
+  token?: string;                   // 認証トークン（Authorizationヘッダーで送信される場合はオプション）
   responses: {
     [date: string]: {               // 日付をキー（YYYY-MM-DD形式）
       morning: boolean;             // 午前中（9:00-12:00）

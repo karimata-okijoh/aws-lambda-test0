@@ -4,7 +4,7 @@
  * アンケート期間
  */
 export const SURVEY_PERIOD = {
-  START_DATE: '2026-03-15',
+  START_DATE: '2026-03-02',
   END_DATE: '2026-06-27'
 } as const;
 
