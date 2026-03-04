@@ -186,10 +186,19 @@
       
       const row = document.createElement('tr');
       
-      // 日付セル
+      // 日付セル（yyyy/mm/dd (曜日) 形式）
       const dateCell = document.createElement('th');
       dateCell.scope = 'row';
-      dateCell.textContent = `${date.getMonth() + 1}/${date.getDate()}`;
+      
+      // 曜日の配列
+      const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+      const dayOfWeek = weekDays[date.getDay()];
+      
+      // yyyy/mm/dd (曜日) 形式で表示
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dateCell.textContent = `${year}/${month}/${day} (${dayOfWeek})`;
       row.appendChild(dateCell);
       
       // 時間帯セル（午前中、午後、18時以降）
