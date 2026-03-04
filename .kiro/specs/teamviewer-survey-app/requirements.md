@@ -33,7 +33,7 @@
 1. Web_Interfaceは、メールアドレスとパスワードの入力フィールドを持つログインフォームを表示すること
 2. Authentication_Handlerは、入力されたメールアドレスが@okijoh.co.jpドメインであることを検証すること
 3. Authentication_Handlerは、入力されたパスワードが事前設定された共通パスワードと一致することを検証すること
-4. karimata@okijoh.co.jpでログインした場合、Authentication_Handlerは管理者用パスワード（'supervisor1!'）で認証すること
+4. karimata@okijoh.co.jpでログインした場合、Authentication_Handlerは管理者用パスワード（'Okijoh!admin'）で認証すること
 5. 認証が成功したとき、Authentication_Handlerはセッションを作成し、ユーザーをアンケートフォームにリダイレクトすること
 6. 管理者として認証が成功したとき、Authentication_Handlerは管理者権限を持つセッションを作成し、管理者ダッシュボードにリダイレクトすること
 7. 認証が失敗したとき、Web_Interfaceは「メールアドレスまたはパスワードが正しくありません」というエラーメッセージを表示すること

@@ -110,7 +110,7 @@ npm run deploy:setup
 
 プロンプトに従って以下を入力してください：
 - **共通パスワード**: 社員がログインする際に使用するパスワード
-- **管理者パスワード**: 管理者（karimata@okijoh.co.jp）専用のパスワード（デフォルト: supervisor1!）
+- **管理者パスワード**: 管理者（karimata@okijoh.co.jp）専用のパスワード（デフォルト: Okijoh!admin）
 
 ### 5. AWS SAMのビルド
 

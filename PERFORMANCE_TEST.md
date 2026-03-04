@@ -66,7 +66,7 @@ Lambda関数のコールドスタート時間を測定します。
    ```bash
    API_ENDPOINT=https://your-api-gateway-url
    COMMON_PASSWORD=teamviewer2026!
-   ADMIN_PASSWORD=supervisor1!
+   ADMIN_PASSWORD=Okijoh!admin
    ```
 
 ## テストの実行
@@ -101,7 +101,7 @@ npm run test:performance
 ```env
 API_ENDPOINT=https://your-api-gateway-url
 COMMON_PASSWORD=teamviewer2026!
-ADMIN_PASSWORD=supervisor1!
+ADMIN_PASSWORD=Okijoh!admin
 ```
 
 その後、dotenvを使用してテストを実行します：
