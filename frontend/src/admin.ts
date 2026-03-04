@@ -69,7 +69,7 @@ const toggleLoading = (show: boolean): void => {
  * 管理者権限チェック
  */
 const checkAdminAuth = (): string | null => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   const role = localStorage.getItem('userRole');
 
   if (!token) {
@@ -203,7 +203,7 @@ const handleGenerateReport = async (): Promise<void> => {
       if (error.message.includes('認証エラー')) {
         showMessage(error.message, 'error');
         setTimeout(() => {
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('token');
           localStorage.removeItem('userRole');
           window.location.href = 'index.html';
         }, 2000);
@@ -222,7 +222,7 @@ const handleGenerateReport = async (): Promise<void> => {
  * ログアウト処理
  */
 const handleLogout = (): void => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
   localStorage.removeItem('userRole');
   localStorage.removeItem('userEmail');
   window.location.href = 'index.html';

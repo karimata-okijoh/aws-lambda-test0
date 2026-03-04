@@ -11,9 +11,9 @@ Globals:
       Variables:
         SESSIONS_TABLE_NAME: !Ref SessionsTable
         RESPONSES_TABLE_NAME: !Ref ResponsesTable
-        COMMON_PASSWORD_PARAM: 'teamviewer-survey-common-password'
-        ADMIN_PASSWORD_PARAM: 'teamviewer-survey-admin-password'
-        SURVEY_START_DATE: '2026-03-15'
+        COMMON_PASSWORD_PARAM: '/teamviewer-survey/common-password'
+        ADMIN_PASSWORD_PARAM: '/teamviewer-survey/admin-password'
+        SURVEY_START_DATE: '2026-03-02'
         SURVEY_END_DATE: '2026-06-27'
         JWT_SECRET: 'teamviewer-survey-jwt-secret-key-2026'
 
@@ -76,8 +76,8 @@ Resources:
               - ssm:GetParameter
               - ssm:GetParameters
             Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey-common-password'
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey-admin-password'
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey/common-password'
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/teamviewer-survey/admin-password'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
