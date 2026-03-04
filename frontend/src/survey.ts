@@ -2,9 +2,9 @@
 
 // 即時実行関数でスコープを分離
 (function() {
-  // アンケート期間の定数
-  const SURVEY_START_DATE = new Date('2026-03-02');
-  const SURVEY_END_DATE = new Date('2026-06-27');
+  // アンケート期間の定数（日本時間）
+  const SURVEY_START_DATE = new Date('2026-03-02T00:00:00+09:00');
+  const SURVEY_END_DATE = new Date('2026-06-27T23:59:59+09:00');
 
   // API エンドポイント（環境に応じて変更）
   const API_BASE_URL = 'https://bycx9lu24g.execute-api.ap-northeast-1.amazonaws.com/prod'; // 本番環境用
@@ -58,20 +58,24 @@
    */
   const getInitialWeekStart = (): Date => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // 日本時間で日付を取得
+    const jstOffset = 9 * 60; // JST is UTC+9
+    const localOffset = today.getTimezoneOffset();
+    const jstTime = new Date(today.getTime() + (jstOffset + localOffset) * 60 * 1000);
+    jstTime.setHours(0, 0, 0, 0);
     
     // システム日付がアンケート期間より前の場合、開始週を表示
-    if (today < SURVEY_START_DATE) {
+    if (jstTime < SURVEY_START_DATE) {
       return getWeekStart(SURVEY_START_DATE);
     }
     
     // システム日付がアンケート期間より後の場合、終了週を表示
-    if (today > SURVEY_END_DATE) {
+    if (jstTime > SURVEY_END_DATE) {
       return getWeekStart(SURVEY_END_DATE);
     }
     
     // システム日付がアンケート期間内の場合、その週を表示
-    return getWeekStart(today);
+    return getWeekStart(jstTime);
   };
 
   /**
