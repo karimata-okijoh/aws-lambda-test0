@@ -201,7 +201,13 @@ const calculateDailyUsage = (
   }>,
   startDate: string,
   endDate: string
-): Array<{ date: string; userCount: number }> => {
+): Array<{ 
+  date: string; 
+  userCount: number;
+  morningCount: number;
+  afternoonCount: number;
+  eveningCount: number;
+}> => {
   // 開始日から終了日までの全日付を生成
   const dates: string[] = [];
   const start = new Date(startDate);
@@ -214,18 +220,30 @@ const calculateDailyUsage = (
   // 各日付のユニークユーザー数をカウント
   const dailyUsage = dates.map(date => {
     const uniqueUsers = new Set<string>();
+    const morningUsers = new Set<string>();
+    const afternoonUsers = new Set<string>();
+    const eveningUsers = new Set<string>();
     
     responses.forEach(response => {
       const dayResponse = response.responses[date];
-      // その日にいずれかの時間帯で利用していればカウント
-      if (dayResponse && (dayResponse.morning || dayResponse.afternoon || dayResponse.evening)) {
-        uniqueUsers.add(response.email);
+      if (dayResponse) {
+        // その日にいずれかの時間帯で利用していればカウント
+        if (dayResponse.morning || dayResponse.afternoon || dayResponse.evening) {
+          uniqueUsers.add(response.email);
+        }
+        // 時間帯別にカウント
+        if (dayResponse.morning) morningUsers.add(response.email);
+        if (dayResponse.afternoon) afternoonUsers.add(response.email);
+        if (dayResponse.evening) eveningUsers.add(response.email);
       }
     });
     
     return {
       date,
-      userCount: uniqueUsers.size
+      userCount: uniqueUsers.size,
+      morningCount: morningUsers.size,
+      afternoonCount: afternoonUsers.size,
+      eveningCount: eveningUsers.size
     };
   });
 
@@ -301,7 +319,13 @@ export const handler = async (
       const usagePatterns = calculateUsagePatterns(allResponses);
 
       // 日別利用者数の集計（要件: 1.1, 1.2, 1.3, 1.4, 1.5）
-      let dailyUsage: Array<{ date: string; userCount: number }> | undefined;
+      let dailyUsage: Array<{ 
+        date: string; 
+        userCount: number;
+        morningCount: number;
+        afternoonCount: number;
+        eveningCount: number;
+      }> | undefined;
       let dailyUsageError = false;
       
       try {

@@ -102,6 +102,9 @@ export interface ReportResponse {
     dailyUsage?: Array<{            // 日別利用者数（オプション）
       date: string;                 // YYYY-MM-DD形式
       userCount: number;            // その日の利用者数
+      morningCount: number;         // 午前中の利用者数
+      afternoonCount: number;       // 午後の利用者数
+      eveningCount: number;         // 18時以降の利用者数
     }>;
     generatedAt: string;            // レポート生成日時
   };

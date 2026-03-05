@@ -23,6 +23,9 @@ interface ReportResponse {
     dailyUsage?: Array<{
       date: string;
       userCount: number;
+      morningCount: number;
+      afternoonCount: number;
+      eveningCount: number;
     }>;
     generatedAt: string;
   };
@@ -190,7 +193,13 @@ const displayReport = (data: ReportResponse['data']): void => {
 /**
  * 日別利用者数テーブルの表示
  */
-const displayDailyUsageTable = (dailyUsage: Array<{ date: string; userCount: number }>): void => {
+const displayDailyUsageTable = (dailyUsage: Array<{ 
+  date: string; 
+  userCount: number;
+  morningCount: number;
+  afternoonCount: number;
+  eveningCount: number;
+}>): void => {
   const tableBody = document.getElementById('daily-usage-table-body');
   if (!tableBody) return;
 
@@ -198,7 +207,7 @@ const displayDailyUsageTable = (dailyUsage: Array<{ date: string; userCount: num
   tableBody.innerHTML = '';
 
   // 各日付のデータを行として追加
-  dailyUsage.forEach(({ date, userCount }) => {
+  dailyUsage.forEach(({ date, userCount, morningCount, afternoonCount, eveningCount }) => {
     const row = document.createElement('tr');
     
     const dateCell = document.createElement('td');
@@ -207,8 +216,20 @@ const displayDailyUsageTable = (dailyUsage: Array<{ date: string; userCount: num
     const countCell = document.createElement('td');
     countCell.textContent = `${userCount}名`;
     
+    const morningCell = document.createElement('td');
+    morningCell.textContent = `${morningCount}名`;
+    
+    const afternoonCell = document.createElement('td');
+    afternoonCell.textContent = `${afternoonCount}名`;
+    
+    const eveningCell = document.createElement('td');
+    eveningCell.textContent = `${eveningCount}名`;
+    
     row.appendChild(dateCell);
     row.appendChild(countCell);
+    row.appendChild(morningCell);
+    row.appendChild(afternoonCell);
+    row.appendChild(eveningCell);
     tableBody.appendChild(row);
   });
 };
