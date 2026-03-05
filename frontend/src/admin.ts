@@ -232,6 +232,65 @@ const displayDailyUsageTable = (dailyUsage: Array<{
     row.appendChild(eveningCell);
     tableBody.appendChild(row);
   });
+
+  // CSVダウンロードボタンを表示
+  const downloadButton = document.getElementById('download-csv-btn');
+  if (downloadButton) {
+    downloadButton.style.display = 'inline-block';
+    // 既存のイベントリスナーを削除して新しいものを追加
+    const newButton = downloadButton.cloneNode(true) as HTMLButtonElement;
+    downloadButton.parentNode?.replaceChild(newButton, downloadButton);
+    newButton.addEventListener('click', () => downloadDailyUsageCSV(dailyUsage));
+  }
+};
+
+/**
+ * 日別利用者数データをCSV形式でダウンロード
+ */
+const downloadDailyUsageCSV = (dailyUsage: Array<{ 
+  date: string; 
+  userCount: number;
+  morningCount: number;
+  afternoonCount: number;
+  eveningCount: number;
+}>): void => {
+  // CSVヘッダー
+  const headers = ['日付', '利用者数', '午前中', '午後', '18時以降'];
+  
+  // CSVデータ行
+  const rows = dailyUsage.map(({ date, userCount, morningCount, afternoonCount, eveningCount }) => {
+    return [date, userCount, morningCount, afternoonCount, eveningCount].join(',');
+  });
+  
+  // CSV文字列を生成（UTF-8 BOM付き）
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+  
+  // Blobを作成
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  
+  // ダウンロードリンクを作成
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  // ファイル名を生成（daily_usage_report_YYYYMMDD_HHMMSS.csv）
+  const now = new Date();
+  const timestamp = now.toISOString()
+    .replace(/[-:]/g, '')
+    .replace('T', '_')
+    .split('.')[0];
+  const filename = `daily_usage_report_${timestamp}.csv`;
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.display = 'none';
+  
+  // ダウンロードを実行
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // URLを解放
+  URL.revokeObjectURL(url);
 };
 
 /**

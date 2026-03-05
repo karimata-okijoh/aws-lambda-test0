@@ -985,3 +985,44 @@ h1 {
     font-size: 20px;
   }
 }
+
+/* カードヘッダーとボタンのレイアウト */
+.card-header-with-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-header-with-button .card-title {
+  margin-bottom: 0;
+}
+
+/* セカンダリボタン */
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+  min-height: 38px;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-secondary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-secondary .btn-icon {
+  font-size: 16px;
+}

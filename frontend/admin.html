@@ -143,7 +143,13 @@
 
       <!-- 日別利用者数 -->
       <div class="stats-card">
-        <h2 class="card-title">日別利用者数</h2>
+        <div class="card-header-with-button">
+          <h2 class="card-title">日別利用者数</h2>
+          <button id="download-csv-btn" class="btn-secondary" style="display: none;">
+            <span class="btn-icon">📥</span>
+            CSVダウンロード
+          </button>
+        </div>
         <div class="table-responsive">
           <table class="report-table">
             <thead>
