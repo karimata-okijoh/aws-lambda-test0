@@ -1043,3 +1043,11 @@ h1 {
 .report-table thead th:last-child {
   border-right: none;
 }
+
+/* 日別利用者数テーブルの列を中央揃え */
+#daily-usage-table-body td:nth-child(2),
+#daily-usage-table-body td:nth-child(3),
+#daily-usage-table-body td:nth-child(4),
+#daily-usage-table-body td:nth-child(5) {
+  text-align: center;
+}
