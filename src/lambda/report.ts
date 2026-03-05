@@ -9,7 +9,7 @@ import {
   JWTPayload
 } from '../types';
 import { getAllResponses } from '../utils/dynamodb';
-import { ADMIN_EMAIL, HTTP_STATUS } from '../utils/constants';
+import { ADMIN_EMAIL, HTTP_STATUS, SURVEY_PERIOD } from '../utils/constants';
 import { logInfo, logError } from '../utils/logger';
 import { getSecretFromEnv, sanitizeResponse } from '../utils/security';
 
@@ -187,6 +187,52 @@ const calculateUsagePatterns = (
 };
 
 /**
+ * 日別利用者数の集計
+ * 要件: 1.1, 1.2, 1.3, 1.4, 1.5, 5.1, 5.2
+ */
+const calculateDailyUsage = (
+  responses: Array<{
+    email: string;
+    responses: Record<string, {
+      morning: boolean;
+      afternoon: boolean;
+      evening: boolean;
+    }>;
+  }>,
+  startDate: string,
+  endDate: string
+): Array<{ date: string; userCount: number }> => {
+  // 開始日から終了日までの全日付を生成
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  for (let current = new Date(start); current <= end; current.setDate(current.getDate() + 1)) {
+    dates.push(current.toISOString().split('T')[0]);
+  }
+
+  // 各日付のユニークユーザー数をカウント
+  const dailyUsage = dates.map(date => {
+    const uniqueUsers = new Set<string>();
+    
+    responses.forEach(response => {
+      const dayResponse = response.responses[date];
+      // その日にいずれかの時間帯で利用していればカウント
+      if (dayResponse && (dayResponse.morning || dayResponse.afternoon || dayResponse.evening)) {
+        uniqueUsers.add(response.email);
+      }
+    });
+    
+    return {
+      date,
+      userCount: uniqueUsers.size
+    };
+  });
+
+  return dailyUsage;
+};
+
+/**
  * レポート生成Lambda関数ハンドラー
  * 要件: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6
  */
@@ -254,6 +300,23 @@ export const handler = async (
       // 利用パターンの分類（要件: 6.4）
       const usagePatterns = calculateUsagePatterns(allResponses);
 
+      // 日別利用者数の集計（要件: 1.1, 1.2, 1.3, 1.4, 1.5）
+      let dailyUsage: Array<{ date: string; userCount: number }> | undefined;
+      let dailyUsageError = false;
+      
+      try {
+        dailyUsage = calculateDailyUsage(
+          allResponses,
+          SURVEY_PERIOD.START_DATE,
+          SURVEY_PERIOD.END_DATE
+        );
+      } catch (error) {
+        dailyUsageError = true;
+        logError('Daily usage calculation failed', error as Error, {
+          errorCode: ErrorCode.SYS_003
+        });
+      }
+
       // レポートデータの生成（要件: 6.5）
       const generatedAt = new Date().toISOString();
 
@@ -272,9 +335,12 @@ export const handler = async (
           responseRate,
           timeSlotStats,
           usagePatterns,
+          ...(dailyUsage && { dailyUsage }), // 集計成功時のみ追加
           generatedAt
         },
-        message: 'レポートが正常に生成されました'
+        message: dailyUsageError 
+          ? 'レポートを生成しましたが、日別利用者数の集計に失敗しました' 
+          : 'レポートが正常に生成されました'
       };
 
       // レスポンスのセキュリティチェック

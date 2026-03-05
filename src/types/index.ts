@@ -99,6 +99,10 @@ export interface ReportResponse {
       oneTimeSlot: number;          // 1時間帯利用
       noUsage: number;              // 未利用
     };
+    dailyUsage?: Array<{            // 日別利用者数（オプション）
+      date: string;                 // YYYY-MM-DD形式
+      userCount: number;            // その日の利用者数
+    }>;
     generatedAt: string;            // レポート生成日時
   };
   message?: string;

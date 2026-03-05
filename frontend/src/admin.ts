@@ -20,6 +20,10 @@ interface ReportResponse {
       oneTimeSlot: number;
       noUsage: number;
     };
+    dailyUsage?: Array<{
+      date: string;
+      userCount: number;
+    }>;
     generatedAt: string;
   };
   message?: string;
@@ -163,6 +167,11 @@ const displayReport = (data: ReportResponse['data']): void => {
     }
   });
 
+  // 日別利用者数テーブル
+  if (data.dailyUsage) {
+    displayDailyUsageTable(data.dailyUsage);
+  }
+
   // レポート生成日時
   const generatedAt = document.getElementById('generated-at');
   if (generatedAt) {
@@ -176,6 +185,32 @@ const displayReport = (data: ReportResponse['data']): void => {
       second: '2-digit'
     });
   }
+};
+
+/**
+ * 日別利用者数テーブルの表示
+ */
+const displayDailyUsageTable = (dailyUsage: Array<{ date: string; userCount: number }>): void => {
+  const tableBody = document.getElementById('daily-usage-table-body');
+  if (!tableBody) return;
+
+  // テーブルをクリア
+  tableBody.innerHTML = '';
+
+  // 各日付のデータを行として追加
+  dailyUsage.forEach(({ date, userCount }) => {
+    const row = document.createElement('tr');
+    
+    const dateCell = document.createElement('td');
+    dateCell.textContent = date;
+    
+    const countCell = document.createElement('td');
+    countCell.textContent = `${userCount}名`;
+    
+    row.appendChild(dateCell);
+    row.appendChild(countCell);
+    tableBody.appendChild(row);
+  });
 };
 
 /**
