@@ -1026,3 +1026,20 @@ h1 {
 .btn-secondary .btn-icon {
   font-size: 16px;
 }
+
+/* 日別利用者数テーブルの縦罫線 */
+#daily-usage-table-body td {
+  border-right: 1px solid #eee;
+}
+
+#daily-usage-table-body td:last-child {
+  border-right: none;
+}
+
+.report-table thead th {
+  border-right: 1px solid #ddd;
+}
+
+.report-table thead th:last-child {
+  border-right: none;
+}

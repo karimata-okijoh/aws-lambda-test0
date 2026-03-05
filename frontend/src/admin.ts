@@ -206,12 +206,18 @@ const displayDailyUsageTable = (dailyUsage: Array<{
   // テーブルをクリア
   tableBody.innerHTML = '';
 
+  // 曜日の配列
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+
   // 各日付のデータを行として追加
   dailyUsage.forEach(({ date, userCount, morningCount, afternoonCount, eveningCount }) => {
     const row = document.createElement('tr');
     
+    // 日付と曜日を表示
     const dateCell = document.createElement('td');
-    dateCell.textContent = date;
+    const dateObj = new Date(date + 'T00:00:00');
+    const weekday = weekdays[dateObj.getDay()];
+    dateCell.textContent = `${date} (${weekday})`;
     
     const countCell = document.createElement('td');
     countCell.textContent = `${userCount}名`;
