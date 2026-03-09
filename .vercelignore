@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+.aws-sam
+
+# Build outputs
+dist
+.aws-sam
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# AWS and SAM
+template.yaml
+samconfig.toml
+scripts
+
+# Backend source
+src/lambda
+src/types
+src/utils
+src/__tests__
+
+# Test files
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+
+# Documentation
+*.md
+!README.md
+
+# Other
+.kiro
+auth-function.zip
+survey-form-sample.html
